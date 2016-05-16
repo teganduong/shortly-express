@@ -97,6 +97,7 @@ app.post('/login', function(req, res) {
         console.log('>>>result: ', result);
         if (result) {
           console.log('You are now logged in!!');
+          req.session.user = username;
           res.redirect('/');
         } else {
           console.log('Bad password');
@@ -117,6 +118,7 @@ app.post('/signup', function(req, res) {
   new User({username: username}).fetch().then(function(user) {
     if (!user) {
       bcrypt.hash(password, null, null, function(err, hash) {
+        console.log('hash is', hash);
         Users.create({
           username: username,
           password: hash
