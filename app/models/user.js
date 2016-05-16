@@ -9,8 +9,9 @@ var User = db.Model.extend({
   hasTimestamps: true,
 
   comparePassword: function(userPassword, callback) {
-    console.log('this.get(pw): ', this.get('password'));
-    bcrypt.compare(userPassword, this.get('password'), function(err, result) {
+    var hashedPw = bcrypt.hashSync(userPassword);
+
+    bcrypt.compare(userPassword, hashedPw, function(err, result) {
       if (err) {
         console.log('error comparing password: ', err);
         callback(err, null);
