@@ -31,7 +31,6 @@ app.use(session({
 }));
 
 app.get('/', util.checkUser, function(req, res) {
-
   res.render('index');
 });
 
@@ -45,7 +44,7 @@ app.get('/links', util.checkUser, function(req, res) {
   });
 });
 
-app.post('/links', function(req, res) {
+app.post('/links', util.checkUser, function(req, res) {
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
@@ -87,6 +86,13 @@ app.get('/signup', function(req, res) {
   res.render('signup');
 });
 
+app.get('/logout', function(req, res) {
+  console.log('inside logout function yayyy! >>>>>>>>');
+  req.session.destroy(function() {
+    res.redirect('/login');
+  });
+});
+
 app.post('/login', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
@@ -94,11 +100,12 @@ app.post('/login', function(req, res) {
   new User({username: username}).fetch().then(function(user) {
     if (user) {
       user.comparePassword(password, function(err, result) {
-        console.log('>>>result: ', result);
         if (result) {
           console.log('You are now logged in!!');
-          req.session.user = username;
-          res.redirect('/');
+          req.session.regenerate(function(err) {
+            req.session.user = username;
+            res.redirect('/');
+          });
         } else {
           console.log('Bad password');
           res.redirect('/login');
@@ -118,13 +125,15 @@ app.post('/signup', function(req, res) {
   new User({username: username}).fetch().then(function(user) {
     if (!user) {
       bcrypt.hash(password, null, null, function(err, hash) {
-        console.log('hash is', hash);
         Users.create({
           username: username,
           password: hash
         })
         .then(function() {
-          res.redirect('/');
+          req.session.regenerate(function(err) {
+            req.session.user = username;
+            res.redirect('/');
+          });
         });
       });
     } else {
@@ -132,13 +141,6 @@ app.post('/signup', function(req, res) {
       res.redirect('/signup');
     }
   });
-  // check if username exists in db
-
-    // if username doesn't exist
-      // create new User 
-
-    // if username does exist, tell user that username already exists
-      // redirect to /signup
     
 });
 
